@@ -2,12 +2,12 @@
 
 #![allow(unused_imports)]
 
-use diesel::pg::Pg;
+use diesel::QueryId;
 use diesel::prelude::*;
 use diesel::query_builder::*;
 use diesel::query_dsl::methods::LoadQuery;
 use diesel::sql_types::BigInt;
-use diesel::QueryId;
+use diesel::sqlite::Sqlite;
 
 use crate::constants::MESSAGE_OK;
 
@@ -42,7 +42,11 @@ pub struct SortedAndPaginated<T> {
 
 impl<T> SortedAndPaginated<T> {
     pub fn per_page(self, per_page: i64) -> Self {
-        SortedAndPaginated { per_page, offset: (self.page - 1) * per_page, ..self }
+        SortedAndPaginated {
+            per_page,
+            offset: (self.page - 1) * per_page,
+            ..self
+        }
     }
 
     pub fn sort(self, sort_by: String, sort_direction: String) -> Self {
@@ -53,9 +57,9 @@ impl<T> SortedAndPaginated<T> {
         }
     }
 
-    pub fn load_and_count_items<'a, U>(self, conn: &mut PgConnection) -> QueryResult<Page<U>>
+    pub fn load_and_count_items<'a, U>(self, conn: &mut SqliteConnection) -> QueryResult<Page<U>>
     where
-        Self: LoadQuery<'a, PgConnection, (U, i64)>,
+        Self: LoadQuery<'a, SqliteConnection, (U, i64)>,
     {
         let page = self.page;
         let per_page = self.per_page;
@@ -70,13 +74,13 @@ impl<T: Query> Query for SortedAndPaginated<T> {
     type SqlType = (T::SqlType, BigInt);
 }
 
-impl<T> RunQueryDsl<PgConnection> for SortedAndPaginated<T> {}
+impl<T> RunQueryDsl<SqliteConnection> for SortedAndPaginated<T> {}
 
-impl<T> QueryFragment<Pg> for SortedAndPaginated<T>
+impl<T> QueryFragment<Sqlite> for SortedAndPaginated<T>
 where
-    T: QueryFragment<Pg>,
+    T: QueryFragment<Sqlite>,
 {
-    fn walk_ast<'b>(&'b self, mut out: AstPass<'_, 'b, Pg>) -> QueryResult<()> {
+    fn walk_ast<'b>(&'b self, mut out: AstPass<'_, 'b, Sqlite>) -> QueryResult<()> {
         out.push_sql("SELECT *, COUNT(*) OVER () FROM (");
         self.query.walk_ast(out.reborrow())?;
         out.push_sql(") t LIMIT ");

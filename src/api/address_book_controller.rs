@@ -1,4 +1,4 @@
-use actix_web::{web, HttpResponse, Result};
+use actix_web::{HttpResponse, Result, web};
 
 use crate::{
     config::db::Pool,
@@ -83,10 +83,10 @@ mod tests {
     use actix_web::body::to_bytes;
     use actix_web::dev::Service;
     use actix_web::http::StatusCode;
-    use actix_web::{http, test, ResponseError};
-    use actix_web::{web, App};
+    use actix_web::{App, web};
+    use actix_web::{ResponseError, http, test};
     use diesel::r2d2::ConnectionManager;
-    use diesel::{r2d2, PgConnection};
+    use diesel::{SqliteConnection, r2d2};
     use futures::FutureExt;
     use http::header;
     use serde_json::json;
@@ -98,7 +98,7 @@ mod tests {
     use crate::models::user::{LoginDTO, UserDTO};
     use crate::services::{account_service, address_book_service};
 
-    pub type Connection = PgConnection;
+    pub type Connection = SqliteConnection;
     pub type Pool = r2d2::Pool<ConnectionManager<Connection>>;
 
     async fn signup_and_login(pool: &web::Data<Pool>) -> Result<String, String> {
@@ -180,9 +180,11 @@ mod tests {
         )
         .await;
 
-        assert!(insert_mock_data(1, &web::Data::new(pool.clone()))
-            .await
-            .is_ok());
+        assert!(
+            insert_mock_data(1, &web::Data::new(pool.clone()))
+                .await
+                .is_ok()
+        );
         assert_eq!(
             get_people_in_db(&web::Data::new(pool.clone()))
                 .await

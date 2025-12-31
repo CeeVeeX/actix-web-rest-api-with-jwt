@@ -6,7 +6,7 @@ use std::{env, io};
 use actix_cors::Cors;
 use actix_web::dev::Service;
 use actix_web::web;
-use actix_web::{http, App, HttpServer};
+use actix_web::{App, HttpServer, http};
 use futures::FutureExt;
 
 mod api;
@@ -22,13 +22,17 @@ mod utils;
 #[actix_rt::main]
 async fn main() -> io::Result<()> {
     dotenv::dotenv().expect("Failed to read .env file");
-    env::set_var("RUST_LOG", "actix_web=debug");
+    unsafe {
+        env::set_var("RUST_LOG", "actix_web=debug");
+    }
     env_logger::init();
 
     let app_host = env::var("APP_HOST").expect("APP_HOST not found.");
     let app_port = env::var("APP_PORT").expect("APP_PORT not found.");
     let app_url = format!("{}:{}", &app_host, &app_port);
     let db_url = env::var("DATABASE_URL").expect("DATABASE_URL not found.");
+
+    println!("Starting server at http://{}", &app_url);
 
     let pool = config::db::init_db_pool(&db_url);
     config::db::run_migration(&mut pool.get().unwrap());
@@ -61,7 +65,7 @@ mod tests {
     use actix_cors::Cors;
     use actix_web::dev::Service;
     use actix_web::web;
-    use actix_web::{http, App, HttpServer};
+    use actix_web::{App, HttpServer, http};
     use futures::FutureExt;
     use testcontainers::clients;
     use testcontainers::images::postgres::Postgres;

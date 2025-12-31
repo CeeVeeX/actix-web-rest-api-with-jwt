@@ -1,7 +1,7 @@
 -- Your SQL goes here
-CREATE TABLE login_history
-(
-    id SERIAL PRIMARY KEY NOT NULL,
-    user_id BIGINT NOT NULL REFERENCES users(id),
-    login_timestamp TIMESTAMP WITH TIME ZONE NOT NULL
+CREATE TABLE login_history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    user_id INTEGER NOT NULL,
+    login_timestamp DATETIME NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id)
 );

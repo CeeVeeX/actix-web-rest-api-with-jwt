@@ -1,3 +1,8 @@
 -- This file should undo anything in `up.sql`
-ALTER TABLE users
-DROP COLUMN login_session;
+-- SQLite3 不支持直接 DROP COLUMN。
+-- 如需回滚该列，需要：
+-- 1) 创建不含 login_session 的临时表结构；
+-- 2) 拷贝旧数据到临时表；
+-- 3) 删除原 users 表；
+-- 4) 将临时表重命名为 users。
+-- 由于涉及数据迁移，此处留空，避免误删数据。
